@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>反應訓練器</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: #f4f4f4;
+    }
+    input {
+      margin: 0.5rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 80px;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+    #numberDisplay {
+      font-size: 5rem;
+      margin: 2rem 0;
+      color: #2c3e50;
+    }
+    #timer {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>反應訓練器</h1>
+  <div>
+    數字範圍：
+    <input type="number" id="minNumber" placeholder="最小值" min="0"> ~
+    <input type="number" id="maxNumber" placeholder="最大值" min="1">
+  </div>
+  <div>
+    數字變換秒數：<input type="number" id="interval" placeholder="秒" step="0.1" min="0.1">
+  </div>
+  <div>
+    訓練總時間（秒）：<input type="number" id="totalTime" placeholder="秒" min="1">
+  </div>
+  <button onclick="startTraining()">開始訓練</button>
+  <div id="numberDisplay">-</div>
+  <div id="timer"></div>
+
+  <script>
+    let intervalId, timerId;
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function startTraining() {
+      const min = parseInt(document.getElementById("minNumber").value);
+      const max = parseInt(document.getElementById("maxNumber").value);
+      const interval = parseFloat(document.getElementById("interval").value);
+      const totalTime = parseInt(document.getElementById("totalTime").value);
+
+      if (isNaN(min) || isNaN(max) || isNaN(interval) || isNaN(totalTime) || min > max || interval <= 0 || totalTime <= 0) {
+        alert("請正確輸入所有數值，並確保數字範圍與秒數合理。");
+        return;
+      }
+
+      let elapsed = 0;
+      const display = document.getElementById("numberDisplay");
+      const timerDisplay = document.getElementById("timer");
+
+      clearInterval(intervalId);
+      clearInterval(timerId);
+
+      function updateNumber() {
+        display.textContent = getRandomInt(min, max);
+      }
+
+      updateNumber();
+      intervalId = setInterval(updateNumber, interval * 1000);
+
+      timerDisplay.textContent = `剩餘時間：${totalTime} 秒`;
+      timerId = setInterval(() => {
+        elapsed++;
+        let remaining = totalTime - elapsed;
+        timerDisplay.textContent = `剩餘時間：${remaining} 秒`;
+        if (elapsed >= totalTime) {
+          clearInterval(intervalId);
+          clearInterval(timerId);
+          display.textContent = "完成！";
+          timerDisplay.textContent = "訓練結束";
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
