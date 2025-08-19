@@ -1,102 +1,460 @@
-
 <!DOCTYPE html>
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>反應訓練器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>反應訓練器 | Reaction Trainer</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2rem;
-      background: #f4f4f4;
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --accent-2:#10b981;
+      --danger:#ef4444;
     }
-    input {
-      margin: 0.5rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-      width: 80px;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:var(--bg);
+      display:flex;
+      min-height:100svh;
+      align-items:center;
+      justify-content:center;
+      padding:clamp(12px,3vw,32px);
     }
-    button {
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      margin-top: 1rem;
-      cursor: pointer;
+    .card{
+      width:min(940px,100%);
+      background:var(--card);
+      border-radius:24px;
+      box-shadow:0 8px 30px rgba(0,0,0,.08);
+      padding:clamp(16px,3vw,32px);
     }
-    #numberDisplay {
-      font-size: 5rem;
-      margin: 2rem 0;
-      color: #2c3e50;
+    .header{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
     }
-    #timer {
-      font-size: 1.2rem;
-      margin-top: 1rem;
-      color: #555;
+    .title{
+      font-size:clamp(20px,2.6vw,28px);
+      font-weight:800;
+      letter-spacing:.3px;
     }
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .control{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:14px;
+      color:var(--muted);
+    }
+    select, input[type='number']{
+      appearance:none;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff;
+      min-width:86px;
+      font-size:14px;
+      color:var(--text);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:16px;
+    }
+    @media (min-width:760px){
+      .grid{grid-template-columns: 1.2fr .8fr;}
+    }
+    .display{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg,#f8fafc,#eef2ff);
+      border:1px solid #e5e7eb;
+      border-radius:24px;
+      height:clamp(240px, 35vw, 420px);
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:manipulation;
+    }
+    .number{
+      font-weight:900;
+      line-height:1;
+      letter-spacing:1px;
+      /* 自適應字級 */
+      font-size:clamp(64px, 12vw, 160px);
+    }
+    .badge{
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      background:#eef2ff;
+      color:#3730a3;
+      border:1px solid #c7d2fe;
+    }
+    .panel{
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:20px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      align-items:center;
+    }
+    .row label{
+      font-size:14px;
+      color:var(--muted);
+    }
+    .switch{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .switch input{display:none}
+    .switch .track{
+      width:44px;height:26px;border-radius:999px;
+      background:#e5e7eb;position:relative;transition:.2s;
+    }
+    .switch .thumb{
+      position:absolute;top:3px;left:3px;
+      width:20px;height:20px;border-radius:50%;
+      background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.2s;
+    }
+    .switch input:checked + .track{background:#c7d2fe}
+    .switch input:checked + .track .thumb{left:21px}
+    .actions{
+      display:flex;flex-wrap:wrap;gap:10px;
+      margin-top:6px;
+    }
+    button{
+      border:0;border-radius:12px;padding:12px 16px;
+      font-weight:700;letter-spacing:.3px;
+      cursor:pointer;
+    }
+    .primary{background:var(--accent);color:#fff}
+    .ghost{background:#eef2ff;color:#3730a3}
+    .danger{background:var(--danger);color:#fff}
+    .meta{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-top:12px;color:var(--muted);font-size:14px;
+    }
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
   </style>
 </head>
 <body>
-  <h1>反應訓練器</h1>
-  <div>
-    數字範圍：
-    <input type="number" id="minNumber" placeholder="最小值" min="0"> ~
-    <input type="number" id="maxNumber" placeholder="最大值" min="1">
-  </div>
-  <div>
-    數字變換秒數：<input type="number" id="interval" placeholder="秒" step="0.1" min="0.1">
-  </div>
-  <div>
-    訓練總時間（秒）：<input type="number" id="totalTime" placeholder="秒" min="1">
-  </div>
-  <button onclick="startTraining()">開始訓練</button>
-  <div id="numberDisplay">-</div>
-  <div id="timer"></div>
+  <div class="card" role="application">
+    <div class="header">
+      <div class="title" id="appTitle">反應訓練器</div>
+      <div class="controls">
+        <label class="switch control" aria-live="polite">
+          <input id="splitToggle" type="checkbox" checked>
+          <span class="track"><span class="thumb"></span></span>
+          <span id="splitToggleLabel">顯示 Split Step 提示</span>
+        </label>
+        <div class="control">
+          <span id="langLabel">語言</span>
+          <select id="langSelect" aria-label="Language">
+            <option value="zh" selected>中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
-  <script>
-    let intervalId, timerId;
+    <div class="grid">
+      <div class="display" aria-live="assertive" aria-atomic="true">
+        <div class="number" id="numberDisplay">-</div>
+      </div>
 
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
+      <div class="panel">
+        <div class="row">
+          <label for="minNumber" id="minLabel">最小數字</label>
+          <input type="number" id="minNumber" placeholder="" inputmode="numeric">
+        </div>
+        <div class="row">
+          <label for="maxNumber" id="maxLabel">最大數字</label>
+          <input type="number" id="maxNumber" placeholder="" inputmode="numeric">
+        </div>
+        <div class="row">
+          <label for="interval" id="intervalLabel">數字變更間隔（秒）</label>
+          <input type="number" id="interval" step="0.1" min="0.1" inputmode="decimal">
+        </div>
+        <div class="row">
+          <label for="totalTime" id="totalLabel">訓練總時間（秒）</label>
+          <input type="number" id="totalTime" min="1" inputmode="numeric">
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="startBtn">開始訓練</button>
+          <button class="ghost" id="pauseBtn">暫停</button>
+          <button class="danger" id="resetBtn">重置</button>
+        </div>
+        <div class="meta">
+          <span id="remainingLabel">剩餘時間：</span>
+          <span id="statusLabel" class="badge">待機中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== i18n =====
+  const I18N = {
+    zh: {
+      title: "反應訓練器",
+      min: "最小數字",
+      max: "最大數字",
+      interval: "數字變更間隔（秒）",
+      total: "訓練總時間（秒）",
+      start: "開始訓練",
+      pause: "暫停",
+      resume: "繼續",
+      reset: "重置",
+      remaining: "剩餘時間：",
+      standby: "待機中",
+      running: "進行中",
+      finished: "訓練結束",
+      complete: "完成！",
+      splitText: "Split Step",
+      toggleSplit: "顯示 Split Step 提示",
+      lang: "語言",
+      inputAlert: "請正確輸入所有數值，並確保數字範圍與秒數合理。"
+    },
+    en: {
+      title: "Reaction Trainer",
+      min: "Min number",
+      max: "Max number",
+      interval: "Change interval (sec)",
+      total: "Total training time (sec)",
+      start: "Start",
+      pause: "Pause",
+      resume: "Resume",
+      reset: "Reset",
+      remaining: "Time left: ",
+      standby: "Idle",
+      running: "Running",
+      finished: "Finished",
+      complete: "Done!",
+      splitText: "Split Step",
+      toggleSplit: "Show Split Step cue",
+      lang: "Language",
+      inputAlert: "Please enter valid values and ensure ranges are reasonable."
+    }
+  };
+
+  const $ = (id)=>document.getElementById(id);
+  const numEl = $("numberDisplay");
+  const startBtn = $("startBtn");
+  const pauseBtn = $("pauseBtn");
+  const resetBtn = $("resetBtn");
+  const remainingLabel = $("remainingLabel");
+  const statusLabel = $("statusLabel");
+  const splitToggle = $("splitToggle");
+  const langSelect = $("langSelect");
+
+  // ===== WebAudio pleasant ding =====
+  let audioCtx;
+  function playDing(){
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o1 = audioCtx.createOscillator();
+      const o2 = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+
+      // gentle triad-ish ding
+      o1.type = "sine"; o1.frequency.value = 659.25; // E5
+      o2.type = "sine"; o2.frequency.value = 987.77; // B5
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.28);
+
+      o1.connect(g); o2.connect(g); g.connect(audioCtx.destination);
+      o1.start(); o2.start();
+      o1.stop(audioCtx.currentTime + 0.3);
+      o2.stop(audioCtx.currentTime + 0.3);
+    }catch(e){ /* ignore audio errors */ }
+  }
+
+  // ===== State =====
+  let lang = "zh";
+  let running = false;
+  let paused = false;
+  let changeTimer = null;
+  let countdownTimer = null;
+  let elapsed = 0;
+  let totalTime = 0;
+  let showSplit = true;
+  let currentSettings = null; // 儲存當前設定
+
+  function t(key){ return I18N[lang][key]; }
+
+  function applyLang(){
+    document.documentElement.lang = lang;
+    $("appTitle").textContent = t("title");
+    $("minLabel").textContent = t("min");
+    $("maxLabel").textContent = t("max");
+    $("intervalLabel").textContent = t("interval");
+    $("totalLabel").textContent = t("total");
+    $("startBtn").textContent = t("start");
+    $("pauseBtn").textContent = paused ? t("resume") : t("pause");
+    $("resetBtn").textContent = t("reset");
+    $("splitToggleLabel").textContent = t("toggleSplit");
+    $("langLabel").textContent = t("lang");
+    remainingLabel.textContent = t("remaining");
+    if(!running && elapsed===0){ statusLabel.textContent = t("standby"); }
+    if(!running && elapsed>0 && elapsed>=totalTime){ statusLabel.textContent = t("finished"); }
+  }
+
+  langSelect.addEventListener("change", ()=>{
+    lang = langSelect.value;
+    applyLang();
+  });
+
+  splitToggle.addEventListener("change", ()=>{
+    showSplit = splitToggle.checked;
+  });
+
+  function getRandomInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function clearTimers(){
+    clearTimeout(changeTimer); changeTimer=null;
+    clearInterval(countdownTimer); countdownTimer=null;
+  }
+
+  function updateNumberOnce(min, max, intervalSec){
+    // sequence: (optional) split step 0.5s -> number displayed -> schedule next
+    const runNumberPhase = ()=>{
+      if(!running || paused) return;
+      numEl.textContent = getRandomInt(min, max);
+      playDing();
+      // show number for intervalSec seconds, then schedule next cycle
+      changeTimer = setTimeout(()=> cycle(), intervalSec*1000);
+    };
+
+    const cycle = ()=>{
+      if(!running || paused) return;
+      if(showSplit){
+        numEl.textContent = t("splitText");
+        changeTimer = setTimeout(runNumberPhase, 500);
+      }else{
+        runNumberPhase();
+      }
+    };
+
+    cycle();
+  }
+
+  function startTraining(){
+    const min = parseInt($("minNumber").value);
+    const max = parseInt($("maxNumber").value);
+    const intervalSec = parseFloat($("interval").value);
+    totalTime = parseInt($("totalTime").value);
+
+    if (isNaN(min) || isNaN(max) || isNaN(intervalSec) || isNaN(totalTime) || min > max || intervalSec <= 0 || totalTime <= 0) {
+      alert(t("inputAlert"));
+      return;
     }
 
-    function startTraining() {
-      const min = parseInt(document.getElementById("minNumber").value);
-      const max = parseInt(document.getElementById("maxNumber").value);
-      const interval = parseFloat(document.getElementById("interval").value);
-      const totalTime = parseInt(document.getElementById("totalTime").value);
+    // 儲存設定供暫停後繼續使用
+    currentSettings = { min, max, intervalSec };
 
-      if (isNaN(min) || isNaN(max) || isNaN(interval) || isNaN(totalTime) || min > max || interval <= 0 || totalTime <= 0) {
-        alert("請正確輸入所有數值，並確保數字範圍與秒數合理。");
-        return;
+    clearTimers();
+    running = true;
+    paused = false;
+    elapsed = 0;
+    statusLabel.textContent = t("running");
+    $("pauseBtn").textContent = t("pause");
+
+    // first cycle
+    updateNumberOnce(min, max, intervalSec);
+
+    // countdown
+    remainingLabel.textContent = t("remaining") + totalTime + (lang==="zh"?" 秒":" s");
+    countdownTimer = setInterval(()=>{
+      if(!running || paused) return;
+      elapsed++;
+      const remain = Math.max(0, totalTime - elapsed);
+      remainingLabel.textContent = t("remaining") + remain + (lang==="zh"?" 秒":" s");
+      if (elapsed >= totalTime){
+        finishTraining();
       }
+    },1000);
+  }
 
-      let elapsed = 0;
-      const display = document.getElementById("numberDisplay");
-      const timerDisplay = document.getElementById("timer");
+  function finishTraining(){
+    running = false;
+    paused = false;
+    clearTimers();
+    numEl.textContent = t("complete");
+    statusLabel.textContent = t("finished");
+  }
 
-      clearInterval(intervalId);
-      clearInterval(timerId);
-
-      function updateNumber() {
-        display.textContent = getRandomInt(min, max);
+  function pauseOrResume(){
+    if(!running && elapsed===0) return; // nothing yet
+    if(!paused){
+      paused = true;
+      $("pauseBtn").textContent = t("resume");
+      clearTimers(); // 清除計時器但保持狀態
+    }else{
+      paused = false;
+      $("pauseBtn").textContent = t("pause");
+      // 重新開始數字更新循環
+      if(currentSettings){
+        updateNumberOnce(currentSettings.min, currentSettings.max, currentSettings.intervalSec);
       }
-
-      updateNumber();
-      intervalId = setInterval(updateNumber, interval * 1000);
-
-      timerDisplay.textContent = `剩餘時間：${totalTime} 秒`;
-      timerId = setInterval(() => {
+      // 重新開始倒數計時
+      countdownTimer = setInterval(()=>{
+        if(!running || paused) return;
         elapsed++;
-        let remaining = totalTime - elapsed;
-        timerDisplay.textContent = `剩餘時間：${remaining} 秒`;
-        if (elapsed >= totalTime) {
-          clearInterval(intervalId);
-          clearInterval(timerId);
-          display.textContent = "完成！";
-          timerDisplay.textContent = "訓練結束";
+        const remain = Math.max(0, totalTime - elapsed);
+        remainingLabel.textContent = t("remaining") + remain + (lang==="zh"?" 秒":" s");
+        if (elapsed >= totalTime){
+          finishTraining();
         }
-      }, 1000);
+      },1000);
     }
-  </script>
+  }
+
+  function resetAll(){
+    running = false; paused = false;
+    clearTimers();
+    elapsed = 0; totalTime = 0;
+    currentSettings = null;
+    numEl.textContent = "-";
+    statusLabel.textContent = t("standby");
+    remainingLabel.textContent = t("remaining");
+  }
+
+  // wire up
+  $("startBtn").addEventListener("click", startTraining);
+  $("pauseBtn").addEventListener("click", pauseOrResume);
+  $("resetBtn").addEventListener("click", resetAll);
+
+  // init
+  applyLang();
+</script>
 </body>
 </html>
